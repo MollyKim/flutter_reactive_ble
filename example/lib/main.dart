@@ -1,3 +1,5 @@
+import 'package:permission_handler/permission_handler.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_reactive_ble_example/src/ble/ble_device_connector.dart';
@@ -76,8 +78,18 @@ class HomeScreen extends StatelessWidget {
           if (status == BleStatus.ready) {
             return DeviceListScreen();
           } else {
+            checkPermissions();
             return BleStatusScreen(status: status ?? BleStatus.unknown);
           }
         },
       );
+}
+ Future<Map<Permission, PermissionStatus>> checkPermissions() async {
+      // if (await Permission.contacts.request().isGranted) {
+      // }
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.location
+      ].request();
+      print(statuses[Permission.location]);
+      return statuses;
 }

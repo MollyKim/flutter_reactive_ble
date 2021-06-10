@@ -172,13 +172,17 @@ class _ServiceDiscoveryListState extends State<_ServiceDiscoveryList> {
     super.initState();
   }
 
-  Widget _characteristicTile(QualifiedCharacteristic characteristic) =>
+  Widget _characteristicTile(QualifiedCharacteristic characteristic,QualifiedCharacteristic characteristic1) =>
       ListTile(
-        onTap: () => showDialog<void>(
-            context: context,
-            builder: (context) => CharacteristicInteractionDialog(
-                  characteristic: characteristic,
-                )),
+        onTap: ()
+        {
+          showDialog<String?>(
+              context: context,
+              builder: (context) => CharacteristicInteractionDialog(
+                    characteristic: characteristic,
+                    characteristic1: characteristic1,
+                  ));
+        },
         title: Text(
           '${characteristic.characteristicId}',
           style: const TextStyle(
@@ -210,7 +214,12 @@ class _ServiceDiscoveryListState extends State<_ServiceDiscoveryList> {
                     shrinkWrap: true,
                     itemBuilder: (context, index) => _characteristicTile(
                       QualifiedCharacteristic(
-                        characteristicId: service.characteristicIds[index],
+                        characteristicId: service.characteristicIds[0],
+                        serviceId: service.serviceId,
+                        deviceId: widget.deviceId,
+                      ),
+                      QualifiedCharacteristic(
+                        characteristicId: service.characteristicIds[1],
                         serviceId: service.serviceId,
                         deviceId: widget.deviceId,
                       ),

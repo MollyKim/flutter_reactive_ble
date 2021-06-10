@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'dart:convert' show utf8;
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_reactive_ble_example/src/ble/ble_device_interactor.dart';
@@ -8,14 +8,18 @@ import 'package:provider/provider.dart';
 class CharacteristicInteractionDialog extends StatelessWidget {
   const CharacteristicInteractionDialog({
     required this.characteristic,
+    required this.characteristic1,
+
     Key? key,
   }) : super(key: key);
   final QualifiedCharacteristic characteristic;
+  final QualifiedCharacteristic characteristic1;
 
   @override
   Widget build(BuildContext context) => Consumer<BleDeviceInteractor>(
       builder: (context, interactor, _) => _CharacteristicInteractionDialog(
             characteristic: characteristic,
+            characteristic1: characteristic1,
             readCharacteristic: interactor.readCharacteristic,
             writeWithResponse: interactor.writeCharacterisiticWithResponse,
             writeWithoutResponse:
@@ -27,6 +31,7 @@ class CharacteristicInteractionDialog extends StatelessWidget {
 class _CharacteristicInteractionDialog extends StatefulWidget {
   const _CharacteristicInteractionDialog({
     required this.characteristic,
+    required this.characteristic1,
     required this.readCharacteristic,
     required this.writeWithResponse,
     required this.writeWithoutResponse,
@@ -35,6 +40,7 @@ class _CharacteristicInteractionDialog extends StatefulWidget {
   }) : super(key: key);
 
   final QualifiedCharacteristic characteristic;
+  final QualifiedCharacteristic characteristic1;
   final Future<List<int>> Function(QualifiedCharacteristic characteristic)
       readCharacteristic;
   final Future<void> Function(
@@ -55,16 +61,14 @@ class _CharacteristicInteractionDialog extends StatefulWidget {
 
 class _CharacteristicInteractionDialogState
     extends State<_CharacteristicInteractionDialog> {
-  late String readOutput;
-  late String writeOutput;
+  late String? writeOutput;
   late String subscribeOutput;
   late TextEditingController textEditingController;
   late StreamSubscription<List<int>>? subscribeStream;
+  late String response;
 
   @override
   void initState() {
-    readOutput = '';
-    writeOutput = '';
     subscribeOutput = '';
     textEditingController = TextEditingController();
     super.initState();
@@ -78,29 +82,20 @@ class _CharacteristicInteractionDialogState
 
   Future<void> subscribeCharacteristic() async {
     subscribeStream =
-        widget.subscribeToCharacteristic(widget.characteristic).listen((event) {
+        widget.subscribeToCharacteristic(widget.characteristic1).listen((event) {
       setState(() {
+        print('sss');
         subscribeOutput = event.toString();
+        response = event.toString();
       });
     });
     setState(() {
-      subscribeOutput = 'Notification set';
+      subscribeOutput = '???';
+      response = '?';
     });
   }
 
-  Future<void> readCharacteristic() async {
-    final result = await widget.readCharacteristic(widget.characteristic);
-    setState(() {
-      readOutput = result.toString();
-    });
-  }
-
-  List<int> _parseInput() => textEditingController.text
-      .split(',')
-      .map(
-        int.parse,
-      )
-      .toList();
+  List<int> _parseInput() => utf8.encode('${textEditingController.text}');
 
   Future<void> writeCharacteristicWithResponse() async {
     await widget.writeWithResponse(widget.characteristic, _parseInput());
@@ -131,10 +126,6 @@ class _CharacteristicInteractionDialogState
               border: OutlineInputBorder(),
               labelText: 'Value',
             ),
-            keyboardType: const TextInputType.numberWithOptions(
-              decimal: true,
-              signed: false,
-            ),
           ),
         ),
         Row(
@@ -142,32 +133,18 @@ class _CharacteristicInteractionDialogState
           children: [
             ElevatedButton(
               onPressed: writeCharacteristicWithResponse,
-              child: const Text('With response'),
+              child: const Text('With res'),
             ),
             ElevatedButton(
               onPressed: writeCharacteristicWithoutResponse,
-              child: const Text('Without response'),
+              child: const Text('Without res'),
             ),
           ],
         ),
-        Padding(
-          padding: const EdgeInsetsDirectional.only(top: 8.0),
-          child: Text('Output: $writeOutput'),
-        ),
-      ];
-
-  List<Widget> get readSection => [
-        sectionHeader('Read characteristic'),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ElevatedButton(
-              onPressed: readCharacteristic,
-              child: const Text('Read'),
-            ),
-            Text('Output: $readOutput'),
-          ],
-        ),
+        // Padding(
+        //   padding: const EdgeInsetsDirectional.only(top: 8.0),
+        //   child: Text('Output: $writeOutput'),
+        // ),
       ];
 
   List<Widget> get subscribeSection => [
@@ -207,8 +184,6 @@ class _CharacteristicInteractionDialogState
                 ),
               ),
               divider,
-              ...readSection,
-              divider,
               ...writeSection,
               divider,
               ...subscribeSection,
@@ -218,7 +193,9 @@ class _CharacteristicInteractionDialogState
                 child: Padding(
                   padding: const EdgeInsets.only(top: 20.0),
                   child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: ()  {
+                        Navigator.of(context).pop(response);
+                        },
                       child: const Text('close')),
                 ),
               )
